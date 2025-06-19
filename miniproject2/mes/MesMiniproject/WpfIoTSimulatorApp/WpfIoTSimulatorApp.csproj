@@ -43,6 +43,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WpfMqttSubApp\WpfMqttSubApp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Views\belt.png" />
     <Resource Include="Views\gear.png" />
     <Resource Include="Views\sensor.png" />
