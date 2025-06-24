@@ -7,7 +7,6 @@ public partial class Setting
 {
     /// <summary>
     /// 기본코드
-    /// 
     /// </summary>
     public string BasicCode { get; set; } = null!;
 
@@ -17,7 +16,7 @@ public partial class Setting
     public string CodeName { get; set; } = null!;
 
     /// <summary>
-    /// 코드 설명
+    /// 코드설명
     /// </summary>
     public string? CodeDesc { get; set; }
 

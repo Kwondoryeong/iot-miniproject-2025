@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using WpfIoTSimulatorApp.Models;
-using WpfMqttSubApp;
 
 namespace WpfIoTSimulatorApp.ViewModels
 {
@@ -26,7 +25,6 @@ namespace WpfIoTSimulatorApp.ViewModels
         private string brokerHost;
         private string mqttTopic;
         private string clientId;
-        private string DatabaseHost;
 
         private int logNum;  // 로그메시지 순번
 
@@ -41,11 +39,7 @@ namespace WpfIoTSimulatorApp.ViewModels
 
             // MQTT용 초기화
             brokerHost = "210.119.12.65"; // 본인 PC 아이피
-            //DatabaseHost = App.Configuration.Database.Server;
-            //mqttTopic = App.Configuration.Mqtt.Topic; // IoT장비번호
-            //clientId = App.Configuration.Mqtt.ClientId;
-
-            clientId = "kdh"; 
+            clientId = "IOT65";  // IoT장비번호
             mqttTopic = "pknu/sf65/data"; // 스마트팩토리 토픽
             logNum = 1; // 로그번호를 1부터 시작
             // MQTT 클라이언트 생성 및 초기화
@@ -165,6 +159,7 @@ namespace WpfIoTSimulatorApp.ViewModels
                 Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 Result = resultText,
             };
+            // 일반 객체 데이터를 json으로 변경 -> 직렬화(Serialization).
             var jsonPayload = JsonConvert.SerializeObject(payload, Formatting.Indented);
             var message = new MqttApplicationMessageBuilder()
                                 .WithTopic(mqttTopic)

@@ -3,7 +3,7 @@
     "Server": "210.119.12.65",
     "Database": "miniproject",
     "UserId": "root",
-    "Password":  "12345"
+    "Password": "12345"
   },
   "Mqtt": {
     "Broker": "210.119.12.65",
@@ -11,5 +11,4 @@
     "Port": 1883,
     "Topic": "pknu/sf65/data"
   }
-
 }

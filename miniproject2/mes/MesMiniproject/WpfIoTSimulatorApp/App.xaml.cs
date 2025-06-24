@@ -9,8 +9,6 @@ namespace WpfIoTSimulatorApp
     /// </summary>
     public partial class App : Application
     {
-        public static object Configuration { get; internal set; }
-
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             var viewModel = new MainViewModel();
