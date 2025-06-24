@@ -17,14 +17,14 @@ namespace WpfMrpSimulatorApp.ViewModels
         // readonly 생성자에서 할당하고나면 그 이후에 값변경 불가
         private readonly IDialogCoordinator dialogCoordinator;
         private readonly IoTDbContext dbContext;
-        #region View와 연동할 멤버변수들
 
+        #region View와 연동할 멤버변수들
 
         private DateTime? _regDt;
         private DateTime? _modDt;
 
         private ObservableCollection<ScheduleNew> _schedules;
-        private Schedule _selectedSchedule;
+        private ScheduleNew _selectedSchedule;
         private bool _isUpdate;
 
         private bool _canSave;
@@ -59,26 +59,32 @@ namespace WpfMrpSimulatorApp.ViewModels
             set => SetProperty(ref _schedules, value);
         }
 
-        public Schedule SelectedSchedule
+        public ScheduleNew SelectedSchedule
         {
             get => _selectedSchedule;
-            set { 
+            set
+            {
                 SetProperty(ref _selectedSchedule, value);
                 // 최초에 BasicCode에 값이 있는 상태만 수정상태
                 if (_selectedSchedule != null)  // 삭제 후에는 _selectedSetting자체가 null이 됨
                 {
-                    
+                    //if (_selectedSchedule.SchIdx != null)  // NullReferenceException 발생 가능
+                    //{
+                    //    CanSave = true;
+                    //    CanRemove = true;
+                    //}
                 }
             }
         }
 
-    
-        public DateTime? RegDt {
+        public DateTime? RegDt
+        {
             get => _regDt;
             set => SetProperty(ref _regDt, value);
         }
 
-        public DateTime? ModDt {
+        public DateTime? ModDt
+        {
             get => _modDt;
             set => SetProperty(ref _modDt, value);
         }
@@ -95,45 +101,42 @@ namespace WpfMrpSimulatorApp.ViewModels
 
             // 최초에는 저장버튼, 삭제버튼이 비활성화 
             CanSave = CanRemove = false;
-
         }
 
-        public async Task LoadGridFromDb()
+        private async Task LoadGridFromDb()
         {
             try
             {
                 using (var db = new IoTDbContext())
                 {
                     var results = db.Schedules
-                        .Join(db.Settings,
-                              sch => sch.PlantCode,
-                              setting1 => setting1.BasicCode,
-                              (sch, setting1) => new { sch, setting1 })
-                        .Join(db.Settings,
-                              temp => temp.sch.SchFacilityId,
-                              setting2 => setting2.BasicCode,
-                              (temp, setting2) => new ScheduleNew
-                              {
-                                  SchIdx = temp.sch.SchIdx,
-                                  PlantCode = temp.sch.PlantCode,
-                                  PlantName = temp.setting1.CodeName,
-                                  SchDate = temp.sch.SchDate,
-                                  LoadTime = temp.sch.LoadTime,
-                                  SchStartTime = temp.sch.SchStartTime,
-                                  SchEndTime = temp.sch.SchEndTime,
-                                  SchFacilityId = temp.sch.SchFacilityId,
-                                  SchFacilityName = setting2.CodeName,
-                                  SchAmount = temp.sch.SchAmount,
-                                  RegDt = temp.sch.RegDt,
-                                  ModDt = temp.sch.ModDt,
-                              })
-                        .ToList();
+                                    .Join(db.Settings,
+                                        sch => sch.PlantCode,
+                                        setting => setting.BasicCode,
+                                        (sch, setting1) => new { sch, setting1 })
+                                    .Join(db.Settings,
+                                          temp => temp.sch.SchFacilityId,
+                                          setting2 => setting2.BasicCode,
+                                          (temp, setting2) => new ScheduleNew
+                                          {
+                                              SchIdx = temp.sch.SchIdx,
+                                              PlantCode = temp.sch.PlantCode,
+                                              PlantName = temp.setting1.CodeName,  // 첫번째 조인에서 만든 값
+                                              SchDate = temp.sch.SchDate,
+                                              LoadTime = temp.sch.LoadTime,
+                                              SchStartTime = temp.sch.SchStartTime,
+                                              SchEndTime = temp.sch.SchEndTime,
+                                              SchFacilityId = temp.sch.SchFacilityId,
+                                              SchFacilityName = setting2.CodeName,  // 두번째 조인에서 만든 값
+                                              SchAmount = temp.sch.SchAmount,
+                                              RegDt = temp.sch.RegDt,
+                                              ModDt = temp.sch.ModDt,
+                                          }
+                                    ).ToList();
 
                     ObservableCollection<ScheduleNew> schedules = new ObservableCollection<ScheduleNew>(results);
                     Schedules = schedules;
                 }
-
-                //Settings = settings;
             }
             catch (Exception ex)
             {
@@ -143,7 +146,7 @@ namespace WpfMrpSimulatorApp.ViewModels
 
         private void InitVariable()
         {
-            SelectedSchedule = new Schedule();
+            SelectedSchedule = new ScheduleNew();
             // IsUpdate가 False면 신규, True면 수정
             IsUpdate = false;
         }
@@ -156,7 +159,7 @@ namespace WpfMrpSimulatorApp.ViewModels
             InitVariable();
             IsUpdate = false;  // DoubleCheck. 확실하게 동작을 하면 지워도 되는 로직
             CanSave = true; // 저장버튼 활성화
-        }        
+        }
 
         [RelayCommand]
         public async Task SaveData()
@@ -164,7 +167,35 @@ namespace WpfMrpSimulatorApp.ViewModels
             // INSERT, UPDATE 기능을 모두 수행
             try
             {
-               
+                string query = string.Empty;
+
+                using (MySqlConnection conn = new MySqlConnection(Common.CONNSTR))
+                {
+                    conn.Open();
+
+                    if (IsUpdate)
+                    {
+                        query = @"UPDATE settings SET codeName = @codeName, codeDesc = @codeDesc, modDt = now() 
+                                   WHERE basicCode = @basicCode";  // UPDATE 쿼리
+                    }
+                    else
+                    {
+                        query = @"INSERT INTO settings (basicCode, codeName, codeDesc, regDt)
+                                   VALUES (@basicCode, @codeName, @codeDesc, now());"; // INSERT 쿼리
+                    }
+
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+
+                    var resultCnt = cmd.ExecuteNonQuery();
+                    if (resultCnt > 0)
+                    {
+                        await this.dialogCoordinator.ShowMessageAsync(this, "기본설정 저장", "데이터가 저장되었습니다.");
+                    }
+                    else
+                    {
+                        await this.dialogCoordinator.ShowMessageAsync(this, "기본설정 저장", "데이터가 저장에 실패했습니다.");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -190,7 +221,6 @@ namespace WpfMrpSimulatorApp.ViewModels
                     conn.Open();
                     MySqlCommand cmd = new MySqlCommand(query, conn);
 
-                    cmd.Parameters.AddWithValue("@basicCode", SelectedSchedule.SchIdx);
 
                     int resultCnt = cmd.ExecuteNonQuery(); // 삭제된 쿼리행수 리턴 1, 안지워졌으면 0
 
