@@ -44,7 +44,7 @@ namespace WpfMqttSubApp.ViewModels
         {
             this.dialogCoordinator = coordinator;
 
-            BrokerHost = App.Configuration.Mqtt.Broker;  // "IP";
+            BrokerHost = App.Configuration.Mqtt.Broker;  // "210.119.12.65";
             DatabaseHost = App.Configuration.Database.Server;
             mqttTopic = App.Configuration.Mqtt.Topic;    // 설정파일로 작업가능
             clientId = App.Configuration.Mqtt.ClientId; 

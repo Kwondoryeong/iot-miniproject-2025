@@ -182,7 +182,7 @@ namespace WpfMrpSimulatorApp.ViewModels
         private void InitVariable()
         {
             SelectedSchedule = new ScheduleNew();
-            //SelectedSchedule.SchDate = DateOnly.FromDateTime(DateTime.Now); // 신규버튼 눌렀을때 0001-01-01방지
+            // SelectedSchedule.SchDate = DateOnly.FromDateTime(DateTime.Now); // 신규버튼 눌렀을때 0001-01-01방지
             // IsUpdate가 False면 신규, True면 수정
             IsUpdate = false;
         }

@@ -21,7 +21,7 @@ public partial class ScheduleNew
     /// <summary>
     /// 공정계획일
     /// </summary>
-    public DateDate SchDate { get; set; }
+    public DateOnly SchDate { get; set; }
 
     /// <summary>
     /// 로드타임(초)
